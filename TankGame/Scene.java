@@ -46,7 +46,7 @@ public class Scene extends JPanel {
     private ArrayList<PowerUp> pups;
     private ArrayList<Projectile> bullets;
 
-    private Tank tank1, tank2;
+    private Tank tank1;
 
     // player windows
     BufferedImage p1w, p2w;
@@ -101,10 +101,6 @@ public class Scene extends JPanel {
             g.setFont(new Font(g.getFont().getFontName(), Font.CENTER_BASELINE, 84));
             g.drawString("PLAYER 2 WINS", 64, windowHeight/2);
         }
-        if (tank2.getLife() == 0) {
-            g.setFont(new Font(g.getFont().getFontName(), Font.CENTER_BASELINE, 84));
-            g.drawString("PLAYER 1 WINS", 64, windowHeight/2);
-        }
     }
 
     public void getGameImage() {
@@ -121,7 +117,6 @@ public class Scene extends JPanel {
         // create subimages from g2
         playerViewBoundChecker();
         p1w = bimg.getSubimage(this.p1WindowBoundX, this.p1WindowBoundY, windowWidth/2, windowHeight);
-        p2w = bimg.getSubimage(this.p2WindowBoundX, this.p2WindowBoundY, windowWidth/2, windowHeight);
         minimap = bimg.getScaledInstance(minimapWidth, minimapHeight, Image.SCALE_SMOOTH);
     }
 
@@ -137,18 +132,6 @@ public class Scene extends JPanel {
             this.p1WindowBoundY = 0;
         } else if (this.p1WindowBoundY >= mapHeight - windowHeight) {
             this.p1WindowBoundY = (mapHeight - windowHeight);
-        }
-
-        if ((this.p2WindowBoundX = tank2.getTankCenterX() - windowWidth / 4) < 0) {
-            this.p2WindowBoundX = 0;
-        } else if (this.p2WindowBoundX >= mapWidth - windowWidth / 2) {
-            this.p2WindowBoundX = (mapWidth - windowWidth / 2);
-        }
-
-        if ((this.p2WindowBoundY = tank2.getTankCenterY() - windowHeight / 2) < 0) {
-            this.p2WindowBoundY = 0;
-        } else if (this.p2WindowBoundY >= mapHeight - windowHeight) {
-            this.p2WindowBoundY = (mapHeight - windowHeight);
         }
     }
 
@@ -174,14 +157,11 @@ public class Scene extends JPanel {
 
     private void drawTanks(Graphics2D g) {
         Graphics2D g2 = (Graphics2D) g;
-
         this.tank1.draw(g2);
-        this.tank2.draw(g2);
     }
 
     private synchronized void drawProjectiles(Graphics2D g) {
         Graphics2D g2 = (Graphics2D) g;
-
         try {
             bullets.forEach((curr) -> {
                 if (curr.isVisible()) {
@@ -196,16 +176,11 @@ public class Scene extends JPanel {
     private void drawPlayerStatus(Graphics g) {
 
         int p1_health = this.tank1.getHealth() * 2;
-        int p2_health = this.tank2.getHealth() * 2;
 
         int p1_lives = this.tank1.getLife();
-        int p2_lives = this.tank2.getLife();
 
         int p1_health_x = 22;
         int p1_health_y = 758;
-
-        int p2_health_x = 578;
-        int p2_health_y = 758;
 
         int health_width = 200;
         int health_height = 20;
@@ -216,21 +191,16 @@ public class Scene extends JPanel {
         // HEALTH FRAME
         g.setColor(Color.DARK_GRAY);
         g.fillRect(p1_health_x, p1_health_y, health_width, health_height); // p1
-        g.fillRect(p2_health_x, p2_health_y, health_width, health_height); // p2
 
         // HEALTH DEPLIETED
         g.setColor(Color.GRAY);
         g.fillRect(p1_health_x + coord_offset, p1_health_y + coord_offset,
                 health_width - size_offset, health_height - size_offset); // p1
-        g.fillRect(p2_health_x + coord_offset, p2_health_y + coord_offset,
-                health_width - size_offset, health_height - size_offset); // p2
 
         // HEALTH AVAILABLE
         g.setColor(Color.GREEN);
         g.fillRect(p1_health_x + coord_offset, p1_health_y + coord_offset,
                 p1_health - size_offset, health_height - size_offset); // p1
-        g.fillRect(p2_health_x + (health_width - p2_health) + coord_offset, p2_health_y + coord_offset,
-                p2_health - size_offset, health_height - size_offset); // p2
 
         // Player 1 lives
         int p1_life_x = 230;
@@ -238,14 +208,6 @@ public class Scene extends JPanel {
         int p1_life_offset = 40;
         for (int i = 0; i < p1_lives; i++) {
             g.drawImage(lifeIcon1, p1_life_x + (i * p1_life_offset), p1_life_y, this);
-        }
-
-        // Player 2 lives
-        int p2_life_x = 538;
-        int p2_life_y = 748;
-        int p2_life_offset = 40;
-        for (int i = 0; i < p2_lives; i++) {
-            g.drawImage(lifeIcon2, p2_life_x - (i * p2_life_offset), p2_life_y, this);
         }
     }
 
@@ -270,18 +232,16 @@ public class Scene extends JPanel {
         this.pups = p;
     }
 
-    public void setTanks(Tank tank1, Tank tank2) {
+    public void setTanks(Tank tank1) {
         this.tank1 = tank1;
-        this.tank2 = tank2;
     }
 
     public void setProjectiles(ArrayList<Projectile> p) {
         this.bullets = p;
     }
 
-    public void setLifeIcons(BufferedImage img1, BufferedImage img2) {
+    public void setLifeIcons(BufferedImage img1) {
         this.lifeIcon1 = img1;
-        this.lifeIcon2 = img2;
     }
 
     // GETTERS //

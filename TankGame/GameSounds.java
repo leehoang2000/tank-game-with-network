@@ -29,8 +29,8 @@ public class GameSounds {
                @Override
                public void run(){
                    while(true){
-                       clip.start();
-                       clip.loop(clip.LOOP_CONTINUOUSLY);
+//                       clip.start();
+//                       clip.loop(clip.LOOP_CONTINUOUSLY);
                        try {
                            Thread.sleep(10000);
                        } catch (InterruptedException ex) {
