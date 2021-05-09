@@ -23,6 +23,10 @@ public class PacketParser {
 				{
 					AckMessage ackMessage = new AckMessage(client);
 					ackMessage.send();
+					
+					// TODO: Register this client for spawning tank
+					
+					int id = UDPServer.roomManager.getID(client);
 				}
 			}
 		}
