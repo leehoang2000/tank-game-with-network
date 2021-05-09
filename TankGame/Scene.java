@@ -84,17 +84,17 @@ public class Scene extends JPanel {
         super.paintComponent(g);
 
         g.drawImage(p1w, 0, 0, this); // draw player 1 window
-        g.drawImage(p2w, windowWidth / 2, 0, this); // draw player 2 window
+//        g.drawImage(p2w, windowWidth / 2, 0, this); // draw player 2 window
         // old minimap place
         drawPlayerStatus(g);
         
         // borders
-        g.setColor(Color.YELLOW);
-        g.draw3DRect(0, 0, (windowWidth/2)-1, windowHeight-22, true);
-        g.draw3DRect(windowWidth/2, 0, (windowWidth/2)-1, windowHeight-2, true);
+//        g.setColor(Color.YELLOW);
+//        g.draw3DRect(0, 0, (windowWidth/2)-1, windowHeight-22, true);
+//        g.draw3DRect(windowWidth/2, 0, (windowWidth/2)-1, windowHeight-2, true);
         
         g.drawImage(minimap, (windowWidth / 2) - (minimapWidth / 2), 0, this); // draw minimap
-        g.draw3DRect((windowWidth / 2) - (minimapWidth / 2), 0, minimapWidth, minimapHeight, true);
+//        g.draw3DRect((windowWidth / 2) - (minimapWidth / 2), 0, minimapWidth, minimapHeight, true);
         
         // victory text
         if (tank1.getLife() == 0) {
@@ -116,16 +116,16 @@ public class Scene extends JPanel {
 
         // create subimages from g2
         playerViewBoundChecker();
-        p1w = bimg.getSubimage(this.p1WindowBoundX, this.p1WindowBoundY, windowWidth/2, windowHeight);
+        p1w = bimg.getSubimage(this.p1WindowBoundX, this.p1WindowBoundY, windowWidth, windowHeight);
         minimap = bimg.getScaledInstance(minimapWidth, minimapHeight, Image.SCALE_SMOOTH);
     }
 
     // CREDIT
     private void playerViewBoundChecker() {
-        if ((this.p1WindowBoundX = tank1.getTankCenterX() - windowWidth / 4) < 0) {
+        if ((this.p1WindowBoundX = tank1.getTankCenterX() - windowWidth / 2) < 0) {
             this.p1WindowBoundX = 0;
-        } else if (this.p1WindowBoundX >= mapWidth - windowWidth / 2) {
-            this.p1WindowBoundX = (mapWidth - windowWidth / 2);
+        } else if (this.p1WindowBoundX >= mapWidth - windowWidth) {
+            this.p1WindowBoundX = (mapWidth - windowWidth);
         }
 
         if ((this.p1WindowBoundY = tank1.getTankCenterY() - windowHeight / 2) < 0) {

@@ -2,9 +2,14 @@ package server;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.SocketAddress;
+
+import server.message.PacketParser;
+import server.room_manager.RoomManager;
 
 public class UDPServer {
+	
+	public static RoomManager roomManager = new RoomManager();
 
 	public static void main(String[] args) throws Exception {
 		int udp_port = 55000;
@@ -18,11 +23,16 @@ public class UDPServer {
 				
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				serverSocket.receive(receivePacket);
-				System.out.println("  - Received data from client: " + receivePacket.getAddress().getHostAddress() + ":"
-						+ receivePacket.getPort());
+//				System.out.println("  - Received data from client: " + receivePacket.getAddress().getHostAddress() + ":"
+//						+ receivePacket.getPort());
+				PacketParser.parse(receivePacket);
 				
-				String sentence = new String(receivePacket.getData());
-				System.out.println("  - Data: " + sentence);
+				
+				// TODO: Clients must send something to signify that it is not a new socket (do not
+				//	 	 call addSocket on it)
+				
+//				String sentence = new String(receivePacket.getData());
+//				System.out.println("  - Data: " + sentence);
 				
 //				InetAddress IPAddress = receivePacket.getAddress();
 //				int port = receivePacket.getPort();

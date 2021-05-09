@@ -134,19 +134,19 @@ public class TankWorld implements Runnable {
 		System.out.println(bullets.size() + " bullets");
 
 		// Client testing
-		int server_port = 55000;
-		String server_ip = "localhost";
-
-		DatagramSocket clientSocket = new DatagramSocket();
-		InetAddress IPAddress = InetAddress.getByName(server_ip);
-		byte[] sendData = new byte[1024];
-		byte[] receiveData = new byte[1024];
-		String sentence = "tank1-CenterX: " + tank1.getTankCenterX() +"tank1-CenterY " + tank1.getTankCenterY();
-		sendData = sentence.getBytes();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, server_port);
-		clientSocket.send(sendPacket);
-		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		clientSocket.close();
+//		int server_port = 55000;
+//		String server_ip = "localhost";
+//
+//		DatagramSocket clientSocket = new DatagramSocket();
+//		InetAddress IPAddress = InetAddress.getByName(server_ip);
+//		byte[] sendData = new byte[1024];
+//		byte[] receiveData = new byte[1024];
+//		String sentence = "tank1-CenterX: " + tank1.getTankCenterX() +"tank1-CenterY " + tank1.getTankCenterY();
+//		sendData = sentence.getBytes();
+//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, server_port);
+//		clientSocket.send(sendPacket);
+//		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+//		clientSocket.close();
 	}
 
 	private void render() {
