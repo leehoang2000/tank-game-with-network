@@ -4,3 +4,5 @@
 /PacketParser.class
 /AckMessage.class
 /PingMessage.class
+/ClientSideListener.class
+/ClientSideSender.class

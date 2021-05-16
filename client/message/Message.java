@@ -1,7 +1,7 @@
 package client.message;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.DatagramSocket;
 
 public abstract class Message {
 	
@@ -15,6 +15,6 @@ public abstract class Message {
 	
 	String stringData;
 	
-	public abstract void send() throws IOException;
+	public abstract void send(DatagramSocket clientSocket) throws IOException;
 	
 }

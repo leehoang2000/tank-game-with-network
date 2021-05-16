@@ -1,19 +1,29 @@
-package client.test;
+package client.message;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-
-import client.message.PacketParser;
 
 public class ClientSideListener extends Thread
 {
 
 	private DatagramSocket clientSocket;
 
-	public ClientSideListener(DatagramSocket clientSocket)
+	private ClientSideListener()
 	{
-		this.clientSocket = clientSocket;
+		
+	}
+	
+	private static ClientSideListener singleton;
+	
+	public static ClientSideListener singleton(DatagramSocket clientSocket)
+	{
+		if(singleton == null)
+		{
+			singleton = new ClientSideListener();
+			singleton.clientSocket = clientSocket;
+		}
+		return singleton;
 	}
 	
 	public void run()

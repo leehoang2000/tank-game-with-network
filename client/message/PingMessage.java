@@ -14,7 +14,7 @@ public class PingMessage extends Message {
 	}
 
 	@Override
-	public void send() throws IOException {
+	public void send(DatagramSocket ds) throws IOException {
 		
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = InetAddress.getByName(server_ip);

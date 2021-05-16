@@ -13,6 +13,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +25,9 @@ import TankGame.GameObject.Movable.Tank;
 import TankGame.GameObject.Unmovable.BreakableWall;
 import TankGame.GameObject.Unmovable.PowerUp;
 import TankGame.GameObject.Unmovable.Wall;
+import client.message.ClientSideListener;
+import client.message.ClientSideSender;
+import client.message.RequestConnectMessage;
 
 /**
  *
@@ -72,7 +76,7 @@ public class TankWorld implements Runnable {
 	private ArrayList<Projectile> bullets;
 
 	// Player stuff //
-	private static Tank tank1;
+	private static Tank tank;
 	private KeyInput keyinput1;
 
 	// Sound player //
@@ -81,57 +85,85 @@ public class TankWorld implements Runnable {
 
 	// Game window //
 	private JFrame frame;
+	
+//	public static TankWorld tankworld;
 
-	public static void main(String args[]) throws IOException {
-		TankWorld tankworld = new TankWorld();
-		tankworld.start();
-
+	public static void main(String args[]) throws Exception {
+		
+		// Wait for ID from server
+		ClientSideListener.singleton
+		(
+				ClientSideSender.singleton().getClientSocket()
+		).start();
+		ClientSideSender.singleton().sendRequestConnectMessage();
+		
+		TankWorld tankworld = new TankWorld();	// Initialize GameObservable
+		
+		tankworld.start();	
+						
 	}
 
 	// Create new Observable
 	public TankWorld() {
 		this.gobs = new GameObservable();
 	}
+	
+	public static Object lock = new Object();
 
 	@Override
 	public void run() {
-		init();
-		try {
-			while (running) {
-				// setChanged() to gameObservable make its hasChanged() return true
-				this.gobs.setChanged();
-
-				// Notify the Observables
-				this.gobs.notifyObservers();
-				// Log the position of tanks
-				// Set the bullet??
-				try {
-					tick();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				// Redraw the tanks
-				render();
-
-				Thread.sleep(1000 / 144);
+		
+		synchronized(lock)
+		{
+			try {
+				lock.wait();
+//				System.out.println("after wait");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (InterruptedException e) {
-			Logger.getLogger(TankWorld.class.getName()).log(Level.SEVERE, null, e);
-		}
+			
+			System.out.println("Current ID: " + currentID);	
+			
+			init();
+			try {
+				while (running) {
+					// setChanged() to gameObservable make its hasChanged() return true
+					this.gobs.setChanged();
 
-		stop();
+					// Notify the Observables
+					this.gobs.notifyObservers();
+					// Log the position of tanks
+					// Set the bullet??
+					try {
+						tick();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+					// Redraw the tanks
+					render();
+
+					Thread.sleep(1000 / 144);
+				}
+			} catch (InterruptedException e) {
+				Logger.getLogger(TankWorld.class.getName()).log(Level.SEVERE, null, e);
+			}
+
+			stop();
+		}
+		
 	}
 
 	// Print tank's data
 	private void tick() throws IOException {
-		System.out.print("Tank 1 --------\t");
-		tank1.printTankData();
-
-		// set the bullet?
+//		System.out.print("Tank 1 --------\t");
+//		tank.printTankData();
+//
+//		// set the bullet?
 		this.scene.setProjectiles(bullets);
-		System.out.println(bullets.size() + " bullets");
+//		System.out.println(bullets.size() + " bullets");
 
 		// Client testing
 //		int server_port = 55000;
@@ -180,7 +212,13 @@ public class TankWorld implements Runnable {
 		// initialize scene things here
 		this.scene = new Scene(map_width, map_height, frame_width, frame_height, background_path, img_paths);
 		setupMap();
-		setupPlayers();
+		
+//		//// Test
+//		for(int i=0; i<4; i++)
+//		{
+		setupPlayer(currentID);
+//		}
+		
 		setupSounds();
 
 		// initialize game frame
@@ -320,29 +358,40 @@ public class TankWorld implements Runnable {
 		// add each object to the Scene
 		this.scene.setMapObjects(this.walls, this.bwalls, this.pups);
 	}
+	
+	public static int currentID = 3;
 
-	private void setupPlayers() {
+	private void setupPlayer(int id) {
 		BufferedImage t1img = setImage(img_paths[0]);
-		BufferedImage t2img = setImage(img_paths[1]);
+//		BufferedImage t2img = setImage(img_paths[1]);
 
-		int tank1_x = 100, tank1_y = 100, tank_speed = 2;
+		int x_coord[] = new int[]{100,100,1400,1400};
+		int y_coord[] = new int[]{100,1400,1400,100};
+				
+		int tank_speed = 2;
 
-		tank1 = new Tank(this, t1img, tank1_x, tank1_y, tank_speed, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_W,
-				KeyEvent.VK_S, KeyEvent.VK_SPACE);
+		tank = new Tank(this, t1img, x_coord[id], y_coord[id], tank_speed, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_W,
+				KeyEvent.VK_S, KeyEvent.VK_SPACE, id);
 
 		// connect key inputs with tanks
-		this.keyinput1 = new KeyInput(tank1);
+		
+		this.keyinput1 = new KeyInput(tank);
 
 		// add tanks to observer list
-		gobs.addObserver(tank1);
+		gobs.addObserver(tank);
 
-		this.scene.setTanks(tank1);
+		this.scene.addTank(tank);
 
 		// instantiate bullets list
 		this.bullets = new ArrayList<>();
 
 		// set life icons
 		this.scene.setLifeIcons(setImage(this.lifeIcon1_path));
+	}
+	
+	public static void setCurrentID(int id)
+	{
+		TankWorld.currentID = id;
 	}
 
 	private void setupSounds() {
@@ -404,7 +453,7 @@ public class TankWorld implements Runnable {
 	public static Tank getTank(int tankNumber) {
 		switch (tankNumber) {
 		case 1:
-			return tank1;
+			return tank;
 		default:
 			System.out.println("Tank not found!");
 			return null;
@@ -413,7 +462,7 @@ public class TankWorld implements Runnable {
 
 	public static ArrayList<Tank> getTanks() {
 		ArrayList<Tank> tanks = new ArrayList<>();
-		tanks.add(tank1);
+		tanks.add(tank);
 		return tanks;
 	}
 

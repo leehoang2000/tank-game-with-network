@@ -13,7 +13,7 @@ public class RoomManager extends Thread
 {
 	// Synchronized data structures
 	Map<InetSocketAddress, Integer> Players = new ConcurrentHashMap<InetSocketAddress, Integer>();
-	Deque<Integer> IDStack = new ConcurrentLinkedDeque<Integer>(Arrays.asList(4,3,2,1));
+	Deque<Integer> IDStack = new ConcurrentLinkedDeque<Integer>(Arrays.asList(3,2,1,0));
 	
 	public boolean addSocket(InetSocketAddress newSocket)
 	{	

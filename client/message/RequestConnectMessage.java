@@ -8,15 +8,14 @@ import java.net.InetSocketAddress;
 
 public class RequestConnectMessage extends Message {
 	
-	public RequestConnectMessage(String stringData)
+	public RequestConnectMessage()
 	{
-		this.stringData = REQUEST_CONNECT + '~' + stringData;
+		this.stringData = REQUEST_CONNECT + "~";
 	}
 
 	@Override
-	public void send() throws IOException {
+	public void send(DatagramSocket clientSocket) throws IOException {
 
-		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = InetAddress.getByName(server_ip);
 		byte[] sendData = new byte[1024];
 		sendData = stringData.getBytes();

@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 
+import client.message.ClientSideListener;
 import server.message.PacketParser;
 
 public class RequestConnectTest {
@@ -27,8 +28,8 @@ public class RequestConnectTest {
 		
 //		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		
-		ClientSideListener listener = new ClientSideListener(clientSocket);
-		listener.start();
+//		ClientSideListener listener = new ClientSideListener(clientSocket);
+//		listener.start();
 		
 	}
 }
