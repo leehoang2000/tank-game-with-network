@@ -1,26 +1,26 @@
-package client.message;
+package server.message;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-public class ClientSideListener extends Thread
+public class ServerSideListener extends Thread
 {
 
 	private DatagramSocket clientSocket;
 
-	private ClientSideListener()
+	private ServerSideListener()
 	{
 		
 	}
 	
-	private static ClientSideListener singleton;
+	private static ServerSideListener singleton;
 	
-	public static ClientSideListener singleton(DatagramSocket clientSocket)
+	public static ServerSideListener singleton(DatagramSocket clientSocket)
 	{
 		if(singleton == null)
 		{
-			singleton = new ClientSideListener();
+			singleton = new ServerSideListener();
 			singleton.clientSocket = clientSocket;
 		}
 		return singleton;
@@ -59,5 +59,4 @@ public class ClientSideListener extends Thread
 		}
 //		clientSocket.close();
 	}
-	
 }

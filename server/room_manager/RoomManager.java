@@ -6,11 +6,22 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import server.message.PingLoopService;
+
 public class RoomManager extends Thread
 {
+	private PingLoopService pls;
+	
+	public RoomManager()
+	{
+		pls = new PingLoopService(Players);
+		pls.start();
+	}
+	
 	// Synchronized data structures
 	Map<InetSocketAddress, Integer> Players = new ConcurrentHashMap<InetSocketAddress, Integer>();
 	Deque<Integer> IDStack = new ConcurrentLinkedDeque<Integer>(Arrays.asList(3,2,1,0));
@@ -53,5 +64,16 @@ public class RoomManager extends Thread
 		return Players.get(socket);
 	}
 
+	public Set<InetSocketAddress> getPlayerSockets()
+	{
+		return Players.keySet();
+	}
+
+	public void resetTimeout(InetSocketAddress client) {
+		
+		pls.resetTimeout(client);
+		
+	}
+	
 }
 // Call RoomManager.start() later

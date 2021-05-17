@@ -7,3 +7,9 @@
 /PingMessage.class
 /PingService.class
 /PingLoopService.class
+/ClientSideListener.class
+/ServerSideListener.class
+/ClientSideSender.class
+/ServerSideSender.class
+/PingLoopService$Timeout.class
+/PingLoopService$TestThread.class

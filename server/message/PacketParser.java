@@ -28,6 +28,12 @@ public class PacketParser {
 					
 					int id = UDPServer.roomManager.getID(client);
 				}
+				break;
+			}
+			case Message.PING:
+			{
+				UDPServer.roomManager.resetTimeout(client);
+				break;
 			}
 		}
 	}

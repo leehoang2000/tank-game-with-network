@@ -22,9 +22,14 @@ public class ClientSideSender {
 		return singleton;
 	}
 	
-	public static void init() throws SocketException
+	public static void init()
 	{
 		
+	}
+	
+	public DatagramSocket getClientSocket()
+	{
+		return clientSocket;
 	}
 	
 	public void sendRequestConnectMessage() throws IOException
@@ -32,10 +37,12 @@ public class ClientSideSender {
 		RequestConnectMessage rcm = new RequestConnectMessage();
 		rcm.send(clientSocket);
 	}
-	
-	public DatagramSocket getClientSocket()
-	{
-		return clientSocket;
+
+	public void sendReplyPingMessage() throws IOException {
+		
+		PingMessage pm = new PingMessage();
+		pm.send(clientSocket);
+		System.out.println("Client replied ping");
 	}
 	
 }

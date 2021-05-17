@@ -10,6 +10,8 @@ public abstract class Message {
 	static final int REFUSE = 2; // gtfo
 	static final int PING = 3;
 	
+//	static final int 
+	
 	static int server_port = 55000;
 	static String server_ip = "localhost";
 	

@@ -25,11 +25,18 @@ public class PacketParser {
 				{
 					TankWorld.lock.notify();
 				}
+				break;
 			}
 			case Message.PING:
 			{
-//				PingMessage pingMessage = new PingMessage();
-//				pingMessage.send();
+				ClientSideSender.singleton().sendReplyPingMessage();
+				break;
+			}
+			case Message.REFUSE:
+			{
+				System.out.println("Server sends REFUSE");
+				
+				break;
 			}
 		}
 	}
