@@ -38,6 +38,10 @@ public class PacketParser {
 				
 				break;
 			}
+			case Message.TANKPOS:
+			{
+				System.out.println("Opcode: TANKPOS, Data: " + data);
+			}
 		}
 	}
 	

@@ -6,3 +6,6 @@
 /PingMessage.class
 /ClientSideListener.class
 /ClientSideSender.class
+/PositionMessage.class
+/TankPosMessage.class
+/TankPosSendService.class

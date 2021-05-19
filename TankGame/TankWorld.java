@@ -123,9 +123,10 @@ public class TankWorld implements Runnable {
 				e.printStackTrace();
 			}
 			
+			// Tanks received ID from server
 			System.out.println("Current ID: " + currentID);	
-			
 			init();
+			
 			try {
 				while (running) {
 					// setChanged() to gameObservable make its hasChanged() return true

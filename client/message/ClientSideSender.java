@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
+import TankGame.TankWorld;
+
 public class ClientSideSender {
 
 	private static ClientSideSender singleton;
@@ -43,6 +45,12 @@ public class ClientSideSender {
 		PingMessage pm = new PingMessage();
 		pm.send(clientSocket);
 		System.out.println("Client replied ping");
+	}
+	
+	public void sendTankPosMessage(int tankID, int tankCenterX, int tankCenterY) throws IOException
+	{
+		TankPosMessage tpm = new TankPosMessage(tankID, tankCenterX, tankCenterY);
+		tpm.send(clientSocket);
 	}
 	
 }

@@ -13,3 +13,5 @@
 /ServerSideSender.class
 /PingLoopService$Timeout.class
 /PingLoopService$TestThread.class
+/TankPosMessage.class
+/RawMessage.class

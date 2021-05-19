@@ -41,4 +41,10 @@ public class ServerSideSender {
 		pm.send();
 	}
 	
+	public void sendRawMessage(InetSocketAddress socket, String message) throws IOException
+	{
+		RawMessage rm = new RawMessage(socket, message);
+		rm.send();
+	}
+	
 }

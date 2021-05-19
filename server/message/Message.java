@@ -10,10 +10,11 @@ public abstract class Message {
 	static final int REFUSE = 2; // gtfo
 	static final int PING = 3;
 	
+	static final int TANKPOS = 4;
+	
 	static int server_port = 55000;
 	static String server_ip = "localhost";
 	
-	String data;
 	InetSocketAddress client;
 	
 	public abstract void send() throws IOException;

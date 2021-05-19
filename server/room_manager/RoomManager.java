@@ -2,15 +2,19 @@
 
 package server.room_manager;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import server.message.PingLoopService;
+import server.message.ServerSideSender;
 
 public class RoomManager extends Thread
 {
@@ -73,6 +77,22 @@ public class RoomManager extends Thread
 		
 		pls.resetTimeout(client);
 		
+	}
+	
+	public void broadcast(String message) throws IOException
+	{
+		broadcast(message, -1);
+	}
+	
+	public void broadcast(String message, int excludeID) throws IOException
+	{
+		for(Entry<InetSocketAddress, Integer> entry : Players.entrySet())
+		{
+			if(entry.getValue() != excludeID)
+			{
+				ServerSideSender.singleton().sendRawMessage(entry.getKey(),message);
+			}
+		}
 	}
 	
 }
