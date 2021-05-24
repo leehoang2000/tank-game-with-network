@@ -15,6 +15,7 @@ public class Tank extends Movable implements Observer {
     protected int coolDown = 0;
     protected int score = 0;
     protected int health = 100;
+    public static int MAX_HEALTH = 100;
     protected int life = 3;
     private int angle = 0;
     private int mapSizeX, mapSizeY;
@@ -25,11 +26,13 @@ public class Tank extends Movable implements Observer {
     private boolean moveLeft, moveRight, moveUp, moveDown, shoot;
     private TankWorld obj;
     private boolean isDead;
+    
+    public int id;
 
     public Tank() {
     }
 
-    public Tank(TankWorld obj, BufferedImage img, int x, int y, int speed, int left, int right, int up, int down, int shootKey) {
+    public Tank(TankWorld obj, BufferedImage img, int x, int y, int speed, int left, int right, int up, int down, int shootKey, int id) {
         super(img, x, y, speed);
         this.left = left;
         this.right = right;
@@ -48,6 +51,7 @@ public class Tank extends Movable implements Observer {
         this.setBounds(8, 10, 49, 44);
         this.mapSizeX = obj.getMapWidth();
         this.mapSizeY = obj.getMapHeight();
+        this.id = id;
     }
 
     public boolean collision(GameObject go) {
@@ -178,7 +182,7 @@ public class Tank extends Movable implements Observer {
 
 
     public void draw(Graphics2D g) {
-        Tank p1 = TankWorld.getTank(1);
+//        Tank p1 = TankWorld.getTank(1);
         
         this.shootCoolDown -= 1;
         if (this.health <= 0) {
