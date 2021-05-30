@@ -23,7 +23,6 @@ public class Tank extends Movable implements Observer {
     private int shootKey;
     private int shootCoolDown = 0;
     private boolean moveLeft, moveRight, moveUp, moveDown, shoot;
-    private Tank p1, p2;
     private TankWorld obj;
     private boolean isDead;
 
@@ -58,13 +57,6 @@ public class Tank extends Movable implements Observer {
             return true;
         }
         return false;
-    }
-
-    public void setOtherTank(Tank otherTank) {
-        this.p1 = new Tank();
-        this.p1 = this;
-        this.p2 = new Tank();
-        this.p2 = otherTank;
     }
 
     //SETTERS
@@ -186,8 +178,7 @@ public class Tank extends Movable implements Observer {
 
 
     public void draw(Graphics2D g) {
-        p1 = TankWorld.getTank(1);
-        p2 = TankWorld.getTank(2);
+        Tank p1 = TankWorld.getTank(1);
         
         this.shootCoolDown -= 1;
         if (this.health <= 0) {
@@ -200,22 +191,22 @@ public class Tank extends Movable implements Observer {
             AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
             rotation.rotate(Math.toRadians(angle), img.getWidth(null) / 2, img.getHeight(null) / 2);
             g.drawImage(img, rotation, null);
-            if ((p1.collision(p2))) {
-                if (p1.x > x) {
-                    p1.x += speed * 5;
-                    p2.x -= speed * 5;
-                } else if (p1.x < x) {
-                    p1.x -= speed * 5;
-                    p2.x += speed * 5;
-                }
-                if (p1.y > y) {
-                    p1.y += speed * 5;
-                    p2.y -= speed * 5;
-                } else if (p1.y < y) {
-                    p1.y -= speed * 5;
-                    p2.y += speed * 5;
-                }
-            }
+//            if ((p1.collision(p2))) {
+//                if (p1.x > x) {
+//                    p1.x += speed * 5;
+//                    p2.x -= speed * 5;
+//                } else if (p1.x < x) {
+//                    p1.x -= speed * 5;
+//                    p2.x += speed * 5;
+//                }
+//                if (p1.y > y) {
+//                    p1.y += speed * 5;
+//                    p2.y -= speed * 5;
+//                } else if (p1.y < y) {
+//                    p1.y -= speed * 5;
+//                    p2.y += speed * 5;
+//                }
+//            }
         } else if ((isDead == true) && (coolDown == 0) && (life > 0)) {
             coolDown = 20; // original: 180
             if (life > 1) {

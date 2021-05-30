@@ -40,7 +40,6 @@ public class BreakableWall extends Wall implements Observer {
     public void update(){
         if(!destroyed){
         Tank p1 = TankWorld.getTank(1);
-        Tank p2 = TankWorld.getTank(2);
 
         if (p1.collision(this)) {
             if (p1.x > (x)) { 
@@ -52,18 +51,6 @@ public class BreakableWall extends Wall implements Observer {
                 p1.y += 3;
             } else if (p1.y < this.y) {
                 p1.y -= 3;
-            }
-        }
-        if (p2.collision(this)) {
-            if (p2.x > (x)) {
-                p2.x += 3;
-            } else if (p2.x < (this.x)) {
-                p2.x -= 3;
-            }
-            if (p2.y > (this.y)) {
-                p2.y += 3;
-            } else if (p2.y < this.y) {
-                p2.y -= 3;
             }
         }
        }
