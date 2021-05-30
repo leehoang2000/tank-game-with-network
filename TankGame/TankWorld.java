@@ -85,6 +85,10 @@ public class TankWorld implements Runnable {
 	public static void main(String args[]) throws IOException {
 		TankWorld tankworld = new TankWorld();
 		tankworld.start();
+<<<<<<< HEAD
+=======
+
+>>>>>>> cc2cf81d5f2b4fa43c69cf9e14431e3aff64b6bb
 	}
 
 	// Create new Observable
