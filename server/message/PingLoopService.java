@@ -6,12 +6,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import server.player.Player;
+
 public class PingLoopService extends Thread {
 	
-	private Map<InetSocketAddress, Integer> Players;
+	private Map<InetSocketAddress, Player> Players;
 	private Map<InetSocketAddress, Timeout> Timeouts;
 	
-	public PingLoopService(Map<InetSocketAddress, Integer> Players) 
+	public PingLoopService(Map<InetSocketAddress, Player> Players) 
 	{
 		this.Players = Players;
 		if(Timeouts == null)
@@ -26,22 +28,20 @@ public class PingLoopService extends Thread {
 		
 		while(true)
 		{
-			try {
-				
+			try {		
 //				playerSockets = UDPServer.roomManager.getPlayerSockets();
-				for(Entry<InetSocketAddress, Integer> entry : Players.entrySet())
+				for(Entry<InetSocketAddress, Player> entry : Players.entrySet())
 				{
 					
-					Timeout timeout = new Timeout(entry.getValue());
+					Timeout timeout = new Timeout(entry.getValue().getID());
 					Timeouts.put(entry.getKey(), timeout);
-					System.out.println("PingLoopService.run : timeouts array length: " + Timeouts.size());
+//					System.out.println("PingLoopService.run : timeouts array length: " + Timeouts.size());
 					timeout.start();
 					
 					ServerSideSender.singleton().sendPingMessage(entry.getKey());
 				}
-				System.out.println("Ping loop sleep nao");
 				sleep(6000);
-				
+					
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -64,9 +64,9 @@ public class PingLoopService extends Thread {
 		{
 			try {
 				sleep(3000);
-				for (Entry<InetSocketAddress, Integer> entry : Players.entrySet()) 
+				for (Entry<InetSocketAddress, Player> entry : Players.entrySet()) 
 				{
-			        if(entry.getValue().equals(playerID))
+			        if(entry.getValue().getID() == playerID)
 			        {
 			        	Players.remove(entry.getKey());
 			        	System.out.println(playerID + " has left the locale");
@@ -83,12 +83,11 @@ public class PingLoopService extends Thread {
 	}
 
 	public void resetTimeout(InetSocketAddress client) {
-		
-		System.out.println("Client interrupted: " + client.toString());
-		System.out.println("timeouts array length: " + Timeouts.size());
+//		System.out.println("Client interrupted: " + client.toString());
+//		System.out.println("timeouts array length: " + Timeouts.size());
 		for (Entry<InetSocketAddress, Timeout> entry : Timeouts.entrySet()) 
 		{
-			System.out.println("Entry: Client: " + entry.getKey().toString());
+//			System.out.println("Entry: Client: " + entry.getKey().toString());
 		}
 		
 		Timeouts.get(client).interrupt();

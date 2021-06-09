@@ -15,3 +15,8 @@
 /PingLoopService$TestThread.class
 /TankPosMessage.class
 /RawMessage.class
+/NewPlayerJoinRoomMessage.class
+/RoomMemberUpdateMessage.class
+/GameResultMessage.class
+/GameWonMessage.class
+/GameLostMessage.class

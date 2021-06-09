@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 
-import TankGame.TankWorld;
-
+//Use the same clientsocket for all message sent to server in 1 session
 public class ClientSideSender {
 
 	private static ClientSideSender singleton;
@@ -44,13 +43,30 @@ public class ClientSideSender {
 		
 		PingMessage pm = new PingMessage();
 		pm.send(clientSocket);
-		System.out.println("Client replied ping");
+//		System.out.println("Client replied ping");
 	}
 	
-	public void sendTankPosMessage(int tankID, int tankCenterX, int tankCenterY) throws IOException
+	public void sendTankPosMessage(int tankID, int tankCenterX, int tankCenterY, int tankAngle) throws IOException
 	{
-		TankPosMessage tpm = new TankPosMessage(tankID, tankCenterX, tankCenterY);
+		TankPosMessage tpm = new TankPosMessage(tankID, tankCenterX, tankCenterY, tankAngle);
 		tpm.send(clientSocket);
+	}
+
+	public void sendShootMessage(int playerID) throws IOException {	
+		// TODO Auto-generated method stub
+		ShootMessage sm = new ShootMessage(playerID);
+		sm.send(clientSocket);
+			
+	}
+
+	public void sendDeathMessage(int playerID) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void sendCurrentHealthMessage(int playerID, int currentHealth) throws IOException {
+		HealthValueMessage chm = new HealthValueMessage(playerID, currentHealth);
+		chm.send(clientSocket);
 	}
 	
 }

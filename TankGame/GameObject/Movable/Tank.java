@@ -1,11 +1,14 @@
 package TankGame.GameObject.Movable;
 
 import TankGame.GameObject.GameObject;
+import client.message.ClientSideSender;
 import TankGame.TankWorld;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -16,7 +19,7 @@ public class Tank extends Movable implements Observer {
     protected int score = 0;
     protected int health = 100;
     public static int MAX_HEALTH = 100;
-    protected int life = 3;
+    protected int life = 1;
     private int angle = 0;
     private int mapSizeX, mapSizeY;
     protected int spawnPointX, spawnPointY;
@@ -78,6 +81,7 @@ public class Tank extends Movable implements Observer {
     
 
     public void bulletDamage(int dmg) {
+//    	System.out.println("Tank.bulletDamage| tank Health: " + this.health);
         if (coolDown <= 0) // originally not used
             this.health -= dmg;
     }
@@ -126,6 +130,14 @@ public class Tank extends Movable implements Observer {
 
     public void switchShootOff() {
         this.shoot = false;
+    }
+    
+    public void setTankCenterX(int tankCenterX) {
+    	this.x = tankCenterX - img.getWidth(null)/2;
+    }
+    
+    public void setTankCenterY(int tankCenterY) {
+    	this.y = tankCenterY - img.getHeight(null)/2;
     }
 
     //GETTERS
@@ -187,6 +199,7 @@ public class Tank extends Movable implements Observer {
         this.shootCoolDown -= 1;
         if (this.health <= 0) {
             isDead = true;
+            
             if (life <= 0)
                 obj.playSound(1);
         }
@@ -195,23 +208,29 @@ public class Tank extends Movable implements Observer {
             AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
             rotation.rotate(Math.toRadians(angle), img.getWidth(null) / 2, img.getHeight(null) / 2);
             g.drawImage(img, rotation, null);
-//            if ((p1.collision(p2))) {
-//                if (p1.x > x) {
-//                    p1.x += speed * 5;
-//                    p2.x -= speed * 5;
-//                } else if (p1.x < x) {
-//                    p1.x -= speed * 5;
-//                    p2.x += speed * 5;
-//                }
-//                if (p1.y > y) {
-//                    p1.y += speed * 5;
-//                    p2.y -= speed * 5;
-//                } else if (p1.y < y) {
-//                    p1.y -= speed * 5;
-//                    p2.y += speed * 5;
-//                }
-//            }
-        } else if ((isDead == true) && (coolDown == 0) && (life > 0)) {
+            for(Tank p1 : TankWorld.singleton().players.values()) {
+            	for(Tank p2 : TankWorld.singleton().players.values()) {
+                	if(!p1.equals(p2)) {
+						if ((p1.collision(p2))) {
+							if (p1.x > x) {
+								p1.x += speed * 2;
+								p2.x -= speed * 2;
+							} else if (p1.x < x) {
+								p1.x -= speed * 2;
+								p2.x += speed * 2;
+							}
+							if (p1.y > y) {
+								p1.y += speed * 2;
+								p2.y -= speed * 2;
+							} else if (p1.y < y) {
+								p1.y -= speed * 2;
+								p2.y += speed * 2;
+							}
+						}
+                	}
+                }
+            }
+        } else if ((isDead == true) && (coolDown == 0) && (life > 0)) {        	
             coolDown = 20; // original: 180
             if (life > 1) {
                 obj.playSound(0); // normal death sound
@@ -231,16 +250,26 @@ public class Tank extends Movable implements Observer {
 
     @Override
     public void update(Observable obj, Object arg) {
-        shoot(this);
+        try {
+			shoot(this);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         update();
     }
 
-    private void shoot(Tank a) {
-        if (shoot && shootCoolDown <= 0 && coolDown <= 0 && life > 0) { // added coolDown check => fixes shooting when spawning
+    private void shoot(Tank a) throws SocketException, IOException {
+        if (shoot && shootCoolDown <= 0 && coolDown <= 0 && life > 0) { 
+        	//Send Shoot Message here!
+//        	System.out.println("Tank.shoot| player " + this.id +"shootin!");
+
+        	// added coolDown check => fixes shooting when spawning
             Projectile newBullet = new Projectile(this.obj, obj.getProjectileImg(), 5, this, 10);
             obj.getProjectile().add(newBullet);
             obj.addBulletToObservable(newBullet);
             this.shootCoolDown = 10;
+            this.switchShootOff();
         }
     }
 

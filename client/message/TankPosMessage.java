@@ -12,12 +12,14 @@ public class TankPosMessage extends Message {
 	private int tankID;
 	private int tankCenterX;
 	private int tankCenterY;
+	private int tankAngle;
 	
-	public TankPosMessage(int tankID, int tankCenterX, int tankCenterY)
+	public TankPosMessage(int tankID, int tankCenterX, int tankCenterY, int tankAngle)
 	{
 		this.tankID = tankID;
 		this.tankCenterX = tankCenterX;
 		this.tankCenterY = tankCenterY;
+		this.tankAngle = tankAngle;
 	}
 
 	@Override
@@ -25,7 +27,7 @@ public class TankPosMessage extends Message {
 		
 		InetAddress IPAddress = InetAddress.getByName(server_ip);
 		byte[] sendData = new byte[1024];
-		String data = TANKPOS + "~" + tankID +"-"+ tankCenterX +"-"+ tankCenterY;
+		String data = TANKPOS + "~" + tankID +"-"+ tankCenterX +"-"+ tankCenterY + "-" + tankAngle;
 		sendData = data.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, server_port);
 		ds.send(sendPacket);

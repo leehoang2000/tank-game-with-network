@@ -27,11 +27,12 @@ public class PowerUp extends Unmovable implements Observer {
 	}
 
 	public void update() {
-		Tank p1 = TankWorld.getTank(1);
-
-		if (p1.collision(this)) {
-			p1.healthUp();
-			pickedUp = true;
+//		Tank p1 = TankWorld.getTank(1);
+		for (Tank p1 : TankWorld.players.values()) {
+			if (p1.collision(this)) {
+				p1.healthUp();
+				pickedUp = true;
+			}
 		}
 	}
 

@@ -6,8 +6,11 @@
 package TankGame;
 
 import TankGame.GameObject.Movable.Tank;
+import client.message.ClientSideSender;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
 import java.util.Observable;
 
 public class KeyInput extends Observable implements KeyListener {
@@ -46,6 +49,12 @@ public class KeyInput extends Observable implements KeyListener {
             this.tank.switchRightOn();
         }
         if (key == this.shootKey) {
+        	try {
+				ClientSideSender.singleton().sendShootMessage(this.tank.id);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
             this.tank.switchShootOn();
         }
     }

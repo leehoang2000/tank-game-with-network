@@ -34,7 +34,7 @@ public class ClientSideListener extends Thread
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			try {
 				clientSocket.receive(receivePacket);
-				PacketParser.parse(receivePacket);
+				PacketParser.singleton().parse(receivePacket);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

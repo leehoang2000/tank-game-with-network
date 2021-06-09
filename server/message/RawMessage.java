@@ -18,14 +18,12 @@ public class RawMessage extends Message {
 
 	@Override
 	public void send() throws IOException {
-		
 		DatagramSocket serverSocket = new DatagramSocket();
 		InetAddress IPAddress = client.getAddress();
 		byte[] sendData = new byte[1024];
 		sendData = message.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, client.getPort());
 		serverSocket.send(sendPacket);
-
 	}
 
 }

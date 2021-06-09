@@ -6,12 +6,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import server.UDPServer;
+public class GameLostMessage extends Message{
 
-public class AckMessage extends Message {
-	
-	public AckMessage(InetSocketAddress client)
-	{
+	public GameLostMessage(InetSocketAddress client) {
 		this.client = client;
 	}
 
@@ -20,11 +17,12 @@ public class AckMessage extends Message {
 		DatagramSocket clientSocket = new DatagramSocket();
 		InetAddress IPAddress = client.getAddress();
 		byte[] sendData = new byte[1024];
-		String data = String.valueOf(ACK) + '~' + UDPServer.singleton().roomManager.getID(client);
+		String data = String.valueOf(GAME_LOST) + '~';
 		sendData = data.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, client.getPort());
 		clientSocket.send(sendPacket);
-		// TODO: Unclosed socket
+		
 	}
 
 }
+	

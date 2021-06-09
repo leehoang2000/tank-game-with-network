@@ -5,11 +5,10 @@ import java.io.IOException;
 import TankGame.TankWorld;
 import TankGame.GameObject.Movable.Tank;
 
-public class TankPosSendService extends Thread {
-	
+public class HealthValueSendService extends Thread{
 	private Tank tank;
 	
-	public TankPosSendService(Tank tank) {
+	public HealthValueSendService(Tank tank) {
 		this.tank = tank;
 	}
 
@@ -19,16 +18,13 @@ public class TankPosSendService extends Thread {
 		while(TankWorld.singleton().isRunning())
 		{
 			try {
-				sleep(30);
-//				System.out.println("Sending tankPos Message");
-				ClientSideSender.singleton().sendTankPosMessage(
-						tank.id, tank.getTankCenterX(), tank.getTankCenterY(), tank.getAngle()
-				);
+				sleep(200);
+//				System.out.println("Client.HealthValueSendService| sending health message");
+				ClientSideSender.singleton().sendCurrentHealthMessage(tank.id, tank.getHealth());
 			} catch (InterruptedException | IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
-	
 }

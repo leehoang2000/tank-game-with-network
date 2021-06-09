@@ -10,53 +10,53 @@ import server.UDPServer;
 
 public class PacketParser {
 
-	public static void parse(DatagramPacket packet) throws IOException
-	{
+	public static void parse(DatagramPacket packet) throws IOException {
 		String message = new String(packet.getData()).trim();
-		System.out.println("Message received: "+ message);
+//		System.out.println("Message received: " + message);
 		int opcode = Integer.valueOf(message.substring(0, message.indexOf('~')));
 		String data = message.substring(message.indexOf('~') + 1, message.length());
 		InetSocketAddress client = (InetSocketAddress) packet.getSocketAddress();
-		switch(opcode)
-		{
-			case Message.REQUEST_CONNECT:
-			{
-				if(UDPServer.roomManager.addSocket(client))
-				{
+		switch (opcode) {
+			case Message.REQUEST_CONNECT: {
+				if (UDPServer.singleton().roomManager.addSocket(client)) {
 					AckMessage ackMessage = new AckMessage(client);
 					ackMessage.send();
-					
-					// TODO: Register this client for spawning tank
-					
-					int id = UDPServer.roomManager.getID(client);
+					int id = UDPServer.singleton().roomManager.getID(client);
 				}
 				break;
 			}
-			case Message.PING:
-			{
-				UDPServer.roomManager.resetTimeout(client);
+			case Message.PING: {
+				UDPServer.singleton().roomManager.resetTimeout(client);
 				break;
 			}
-			case Message.TANKPOS:
-			{
-				// data: ID-X-Y
-				String pattern = "^([0-9]+)-([0-9]+)-([0-9]+)$";
-				Pattern p = Pattern.compile(pattern);
-				Matcher m = p.matcher(data);
-				int id,x,y;
-				if(m.find())
-				{
-					id = Integer.valueOf(m.group(1));
-					x = Integer.valueOf(m.group(2));
-					y = Integer.valueOf(m.group(3));
-					
-					System.out.println("ID: " + id + "; X: " + x + "; Y: " + y);
-					
-					// Broadcast to room, exclude id
-					UDPServer.roomManager.broadcast(message,id);
-				}
+			case Message.TANKPOS: {
+				int id = Integer.valueOf(data.substring(0, data.indexOf('-')));
+				// Broadcast to room, exclude id
+//			System.out.println("Server.packetparser.parse | The id is" + id);
+//			System.out.println("Server.packetparser.parse | The message is" + message);
+				UDPServer.singleton().roomManager.broadcast(message, id);
+				break;
+			}
+			case Message.SHOOT: {
+				int id = Integer.valueOf(data);
+//			System.out.println("Server.PacketParser.parse| player " + id + "shot!");
+//			System.out.println("Server.PacketParser.parse| server broadcast shot!");
+				UDPServer.singleton().roomManager.broadcast(message, id);
+				message = "";
+				break;
+			}
+			case Message.DEATH: {
+				break;
+			}
+			case Message.HEALTH_VALUE: {
+//			System.out.println("Server.PacketParser.parse| sending current Health!");
+				int id = Integer.valueOf(data.substring(0, data.indexOf('~')));
+				data = data.substring(data.indexOf('~') + 1, data.length());
+				int newHealthValue = Integer.valueOf(data);
+				UDPServer.singleton().roomManager.broadcast(message, id);
+				UDPServer.singleton().roomManager.updatePlayerHealth(id, newHealthValue);
 			}
 		}
 	}
-	
+
 }

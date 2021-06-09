@@ -3,17 +3,12 @@ package TankGame;
 import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +22,8 @@ import TankGame.GameObject.Unmovable.PowerUp;
 import TankGame.GameObject.Unmovable.Wall;
 import client.message.ClientSideListener;
 import client.message.ClientSideSender;
-import client.message.RequestConnectMessage;
+import client.message.HealthValueSendService;
+import client.message.TankPosSendService;
 
 /**
  *
@@ -68,6 +64,7 @@ public class TankWorld implements Runnable {
 	// Active fields //
 	private Thread thread;
 	private boolean running = false;
+	public boolean isInitialized = false;
 
 	// Game objects //
 	private ArrayList<Wall> walls;
@@ -76,7 +73,9 @@ public class TankWorld implements Runnable {
 	private ArrayList<Projectile> bullets;
 
 	// Player stuff //
-	private static Tank tank;
+	public static Map<Integer, Tank> players;
+
+	private int roomID;
 	private KeyInput keyinput1;
 
 	// Sound player //
@@ -85,65 +84,55 @@ public class TankWorld implements Runnable {
 
 	// Game window //
 	private JFrame frame;
-	
-//	public static TankWorld tankworld;
+
+	private static TankWorld singleton;
+
+	public static TankWorld singleton() {
+		if (singleton == null)
+			singleton = new TankWorld();
+		return singleton;
+	}
 
 	public static void main(String args[]) throws Exception {
-		
 		// Wait for ID from server
-		ClientSideListener.singleton
-		(
-				ClientSideSender.singleton().getClientSocket()
-		).start();
+		ClientSideListener.singleton(ClientSideSender.singleton().getClientSocket()).start();
 		ClientSideSender.singleton().sendRequestConnectMessage();
-		
-		TankWorld tankworld = new TankWorld();	// Initialize GameObservable
-		
-		tankworld.start();	
-						
+		singleton().start();
 	}
 
 	// Create new Observable
 	public TankWorld() {
+		this.players = new HashMap<Integer, Tank>();
 		this.gobs = new GameObservable();
 	}
-	
-	public static Object lock = new Object();
+
+	public static Object getIDFromServerLock = new Object();
+	public static Object initializedLock = new Object();
 
 	@Override
 	public void run() {
-		
-		synchronized(lock)
-		{
+
+		synchronized (getIDFromServerLock) {
 			try {
-				lock.wait();
-//				System.out.println("after wait");
+				getIDFromServerLock.wait();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			// Tanks received ID from server
-			System.out.println("Current ID: " + currentID);	
+			System.out.println("Current ID: " + currentID);
 			init();
-			
+
 			try {
 				while (running) {
-					// setChanged() to gameObservable make its hasChanged() return true
 					this.gobs.setChanged();
-
-					// Notify the Observables
 					this.gobs.notifyObservers();
-					// Log the position of tanks
-					// Set the bullet??
 					try {
 						tick();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-
-					// Redraw the tanks
 					render();
 
 					Thread.sleep(1000 / 144);
@@ -154,32 +143,10 @@ public class TankWorld implements Runnable {
 
 			stop();
 		}
-		
 	}
 
-	// Print tank's data
 	private void tick() throws IOException {
-//		System.out.print("Tank 1 --------\t");
-//		tank.printTankData();
-//
-//		// set the bullet?
 		this.scene.setProjectiles(bullets);
-//		System.out.println(bullets.size() + " bullets");
-
-		// Client testing
-//		int server_port = 55000;
-//		String server_ip = "localhost";
-//
-//		DatagramSocket clientSocket = new DatagramSocket();
-//		InetAddress IPAddress = InetAddress.getByName(server_ip);
-//		byte[] sendData = new byte[1024];
-//		byte[] receiveData = new byte[1024];
-//		String sentence = "tank1-CenterX: " + tank1.getTankCenterX() +"tank1-CenterY " + tank1.getTankCenterY();
-//		sendData = sentence.getBytes();
-//		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, server_port);
-//		clientSocket.send(sendPacket);
-//		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-//		clientSocket.close();
 	}
 
 	private void render() {
@@ -213,17 +180,23 @@ public class TankWorld implements Runnable {
 		// initialize scene things here
 		this.scene = new Scene(map_width, map_height, frame_width, frame_height, background_path, img_paths);
 		setupMap();
-		
-//		//// Test
-//		for(int i=0; i<4; i++)
-//		{
+
 		setupPlayer(currentID);
-//		}
-		
+
 		setupSounds();
 
 		// initialize game frame
 		setupFrame();
+
+		// Start sending this tank's position
+		TankPosSendService tpss = new TankPosSendService(players.get(currentID));
+		tpss.start();
+
+		// Start sending this tank's health
+		HealthValueSendService hvss = new HealthValueSendService(players.get(currentID));
+		hvss.start();
+
+		isInitialized = true;
 	}
 
 	private void initWorldProperties() {
@@ -246,7 +219,7 @@ public class TankWorld implements Runnable {
 		projectile_path = "Resources/Shelledit2.gif";
 		// 0: empty, 1: empty, 2: wall, 3: breakable wall, 4: health, 5: life, 6:
 		// projectile
-		img_paths = new String[] { tank1_path,"nuthin" ,wall_path, breakablewall_path, health_path, life_path,
+		img_paths = new String[] { tank1_path, "nuthin", wall_path, breakablewall_path, health_path, life_path,
 				projectile_path };
 
 		// SOUNDS
@@ -359,24 +332,26 @@ public class TankWorld implements Runnable {
 		// add each object to the Scene
 		this.scene.setMapObjects(this.walls, this.bwalls, this.pups);
 	}
-	
+
 	public static int currentID = 3;
 
-	private void setupPlayer(int id) {
+	public void setupPlayer(int id) {
 		BufferedImage t1img = setImage(img_paths[0]);
 //		BufferedImage t2img = setImage(img_paths[1]);
 
-		int x_coord[] = new int[]{100,100,1400,1400};
-		int y_coord[] = new int[]{100,1400,1400,100};
-				
+		int x_coord[] = new int[] { 100, 100, 1400, 1400 };
+		int y_coord[] = new int[] { 100, 1400, 1400, 100 };
+
 		int tank_speed = 2;
 
-		tank = new Tank(this, t1img, x_coord[id], y_coord[id], tank_speed, KeyEvent.VK_A, KeyEvent.VK_D, KeyEvent.VK_W,
-				KeyEvent.VK_S, KeyEvent.VK_SPACE, id);
+		Tank tank = new Tank(this, t1img, x_coord[id], y_coord[id], tank_speed, KeyEvent.VK_A, KeyEvent.VK_D,
+				KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_SPACE, id);
 
-		// connect key inputs with tanks
-		
-		this.keyinput1 = new KeyInput(tank);
+		// connect key inputs with tank, if this client owns it
+		if (id == TankWorld.currentID) {
+			System.out.println("Key Input set!");
+			this.keyinput1 = new KeyInput(tank);
+		}
 
 		// add tanks to observer list
 		gobs.addObserver(tank);
@@ -387,11 +362,36 @@ public class TankWorld implements Runnable {
 		this.bullets = new ArrayList<>();
 
 		// set life icons
-		this.scene.setLifeIcons(setImage(this.lifeIcon1_path));
+//		this.scene.setLifeIcons(setImage(this.lifeIcon1_path));
+
+		// Put tank in Players
+		this.players.put(id, tank);
 	}
-	
-	public static void setCurrentID(int id)
-	{
+
+	public void despawnPlayer(int id) {
+		// Despawn player with given id
+	}
+
+	public void updateRoomMember(ArrayList<Integer> ids) {
+		// Setup new players
+		for (int newId : ids) {
+			if (!players.containsKey(newId)) {
+				setupPlayer(newId);
+				System.out.println("TankWorld.updateRoomMember The room now has: ");
+				for (int id : players.keySet()) {
+					System.out.println(id);
+				}
+			}
+		}
+
+		for (int oldId : players.keySet()) {
+			if (!ids.contains(oldId)) {
+				despawnPlayer(oldId);
+			}
+		}
+	}
+
+	public static void setCurrentID(int id) {
 		TankWorld.currentID = id;
 	}
 
@@ -435,6 +435,14 @@ public class TankWorld implements Runnable {
 		this.gobs.addObserver(p);
 	}
 
+	public void handleLoseScene() {
+		this.scene.setupLoseText();
+	}
+
+	public void handleWinScene() {
+		this.scene.setupWinText();
+	}
+
 	// SETTERS //
 	private BufferedImage setImage(String filepath) {
 		BufferedImage img = null;
@@ -449,22 +457,6 @@ public class TankWorld implements Runnable {
 	// GETTERS //
 	public TankWorld getTankWorld() {
 		return this;
-	}
-
-	public static Tank getTank(int tankNumber) {
-		switch (tankNumber) {
-		case 1:
-			return tank;
-		default:
-			System.out.println("Tank not found!");
-			return null;
-		}
-	}
-
-	public static ArrayList<Tank> getTanks() {
-		ArrayList<Tank> tanks = new ArrayList<>();
-		tanks.add(tank);
-		return tanks;
 	}
 
 	public ArrayList<Wall> getWalls() {
@@ -519,6 +511,14 @@ public class TankWorld implements Runnable {
 	public void playSound(int sound_number) {
 		if (sound_number >= 0 && sound_number <= 3)
 			this.soundplayer.get(sound_number).play();
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void turnOff() {
+		this.running = false;
 	}
 
 }

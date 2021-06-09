@@ -43,6 +43,8 @@ public class Scene extends JPanel {
     private ArrayList<BreakableWall> bwalls;
     private ArrayList<PowerUp> pups;
     private ArrayList<Projectile> bullets;
+    private boolean displayLoseText;
+    private boolean displayWinText;
 
 //    private Tank tank1;
 
@@ -74,7 +76,9 @@ public class Scene extends JPanel {
         bwalls = new ArrayList<>();
         pups = new ArrayList<>();
         bullets = new ArrayList<>();
-        
+       
+        this.displayLoseText = false;
+        this.displayWinText = false;
         this.Tanks = new ArrayList<Tank>();
     }
 
@@ -84,23 +88,21 @@ public class Scene extends JPanel {
         super.paintComponent(g);
 
         g.drawImage(p1w, 0, 0, this); // draw player 1 window
-//        g.drawImage(p2w, windowWidth / 2, 0, this); // draw player 2 window
-        // old minimap place
-        drawHUD(g);
+        drawHUD(g);    
+     // draw minimap
+        g.drawImage(minimap, (windowWidth / 2) - (minimapWidth / 2), 0, this); 
         
-        // borders
-//        g.setColor(Color.YELLOW);
-//        g.draw3DRect(0, 0, (windowWidth/2)-1, windowHeight-22, true);
-//        g.draw3DRect(windowWidth/2, 0, (windowWidth/2)-1, windowHeight-2, true);
-        
-        g.drawImage(minimap, (windowWidth / 2) - (minimapWidth / 2), 0, this); // draw minimap
-//        g.draw3DRect((windowWidth / 2) - (minimapWidth / 2), 0, minimapWidth, minimapHeight, true);
-        
-        // victory text
-//        if (tank1.getLife() == 0) {
-//            g.setFont(new Font(g.getFont().getFontName(), Font.CENTER_BASELINE, 84));
-//            g.drawString("PLAYER 2 WINS", 64, windowHeight/2);
-//        }
+        if(displayLoseText) {
+        	g.setColor(Color.red);
+            g.setFont(new Font(g.getFont().getFontName(), Font.CENTER_BASELINE, 84));
+            g.drawString("FATALITY", windowWidth/4, windowHeight/2);
+        }
+        if(displayWinText) {
+        	g.setColor(Color.green);
+            g.setFont(new Font(g.getFont().getFontName(), Font.CENTER_BASELINE, 84));
+            g.drawString("WE WON!", windowWidth/4, windowHeight/2);
+        }
+
     }
 
     public void getGameImage() {
@@ -193,7 +195,6 @@ public class Scene extends JPanel {
 //        int coord_offset[] = new int[]{0,0,0,0};
         int size_offset = 8;
 
-        
         int p1_health_x[] = new int[] {0,200,400,600};
         int p1_health_y = 758;
     	
@@ -202,14 +203,13 @@ public class Scene extends JPanel {
     		int id = tank.id;
     		
 	        int p1_health = tank.getHealth();
-	
 	        int p1_lives = tank.getLife();
-	
+
 	        // HEALTH FRAME
 	        g.setColor(Color.DARK_GRAY);
 	        g.fillRect(p1_health_x[id], p1_health_y, health_width, health_height); // p1
 	
-	        // HEALTH DEPLIETED
+	        // HEALTH DEPLETED
 	        g.setColor(Color.GRAY);
 	        g.fillRect(p1_health_x[id] + coord_offset, p1_health_y + coord_offset,
 	                health_width - size_offset, health_height - size_offset); // p1
@@ -217,7 +217,7 @@ public class Scene extends JPanel {
 	        // HEALTH AVAILABLE
 	        g.setColor(Color.GREEN);
 	        g.fillRect(p1_health_x[id] + coord_offset, p1_health_y + coord_offset,
-	                (p1_health/Tank.MAX_HEALTH)*(health_width - size_offset), health_height - size_offset); // p1
+	        		(int) (((float)tank.getHealth()/Tank.MAX_HEALTH)*(health_width - size_offset)), health_height - size_offset); // p1
 	
 	        // Player 1 lives
 	        int p1_life_x = 230;
@@ -262,6 +262,14 @@ public class Scene extends JPanel {
 
     public void setLifeIcons(BufferedImage img1) {
         this.lifeIcon1 = img1;
+    }
+    
+    public void setupWinText() {
+    	this.displayWinText = true;
+    }
+    
+    public void setupLoseText() {
+    	this.displayLoseText = true;
     }
 
     // GETTERS //
