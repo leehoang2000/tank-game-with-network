@@ -21,15 +21,17 @@ public class KeyInput extends Observable implements KeyListener {
     private final int leftKey;
     private final int rightKey;
     private final int shootKey;
+    private ClientSideSender clientSideSender;
 
     
-    public KeyInput(Tank tank) {
+    public KeyInput(Tank tank, ClientSideSender clientSideSender) {
         this.tank = tank;
         this.upKey = tank.getUpKey();
         this.downKey = tank.getDownKey();
         this.leftKey = tank.getLeftKey();
         this.rightKey = tank.getRightKey();
         this.shootKey = tank.getShootKey();
+        this.clientSideSender = clientSideSender;
     }
 
     @Override
@@ -50,7 +52,7 @@ public class KeyInput extends Observable implements KeyListener {
         }
         if (key == this.shootKey) {
         	try {
-				ClientSideSender.singleton().sendShootMessage(this.tank.id);
+				clientSideSender.sendShootMessage(this.tank.id);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

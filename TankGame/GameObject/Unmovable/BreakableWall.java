@@ -2,7 +2,7 @@
 package TankGame.GameObject.Unmovable;
 
 import TankGame.GameObject.Movable.Tank;
-import TankGame.TankWorld;
+import TankGame.TankGameClient;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -14,12 +14,14 @@ public class BreakableWall extends Wall implements Observer {
 	Rectangle wallRect;
 	private int height, width;
 	private boolean destroyed = false;
+	private TankGameClient tankGame;
 
-	public BreakableWall(int x, int y, int width, int height, BufferedImage img) {
-		super(x, y, width, height, img);
+	public BreakableWall(int x, int y, int width, int height, BufferedImage img, TankGameClient tankGame) {
+		super(x, y, width, height, img, tankGame);
 		this.height = img.getHeight();
 		this.width = img.getWidth();
 		wallRect = new Rectangle(x, y, width, height);
+		this.tankGame = tankGame;
 	}
 
 	public void breakWall() {
@@ -38,7 +40,7 @@ public class BreakableWall extends Wall implements Observer {
 	@Override
 	public void update() {
 		if (!destroyed) {
-			for (Tank p1 : TankWorld.players.values()) {
+			for (Tank p1 : tankGame.getPlayers().values()) {
 				if (p1.collision(this)) {
 					if (p1.x > (x)) {
 						p1.x += 3;

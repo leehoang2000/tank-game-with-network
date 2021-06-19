@@ -5,7 +5,6 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,18 +19,11 @@ import TankGame.GameObject.Movable.Tank;
 import TankGame.GameObject.Unmovable.BreakableWall;
 import TankGame.GameObject.Unmovable.PowerUp;
 import TankGame.GameObject.Unmovable.Wall;
-import client.message.ClientSideListener;
 import client.message.ClientSideSender;
 import client.message.HealthValueSendService;
 import client.message.TankPosSendService;
 
-/**
- *
- * @author monal,motiveg
- */
-public class TankWorld implements Runnable {
-
-	// Do resource initialization in init() methods further down //
+public class TankGameClient implements Runnable {
 
 	// JFrame properties //
 	private String frame_title;
@@ -64,18 +56,56 @@ public class TankWorld implements Runnable {
 	// Active fields //
 	private Thread thread;
 	private boolean running = false;
-	public boolean isInitialized = false;
+	private boolean isInitialized = false;
+
+	public boolean isInitialized() {
+		return isInitialized;
+	}
 
 	// Game objects //
 	private ArrayList<Wall> walls;
 	private ArrayList<BreakableWall> bwalls;
 	private ArrayList<PowerUp> pups;
 	private ArrayList<Projectile> bullets;
-
+ 
 	// Player stuff //
-	public static Map<Integer, Tank> players;
-
+	private int allyID = -1;
+	private Map<Integer, Tank> players;
+	private int currentID = -1;
 	private int roomID;
+
+	public Map<Integer, Tank> getPlayers() {
+		return players;
+	}
+
+	public void setPlayers(Map<Integer, Tank> players) {
+		this.players = players;
+	}
+
+	public int getAllyID() {
+		return allyID;
+	}
+
+	public void setAllyID(int allyID) {
+		this.allyID = allyID;
+	}
+
+	public void setCurrentID(int id) {
+		this.currentID = id;
+	}
+
+	public int getCurrentID() {
+		return this.currentID;
+	}
+
+	public int getRoomID() {
+		return roomID;
+	}
+
+	public void setRoomID(int roomID) {
+		this.roomID = roomID;
+	}
+
 	private KeyInput keyinput1;
 
 	// Sound player //
@@ -85,25 +115,14 @@ public class TankWorld implements Runnable {
 	// Game window //
 	private JFrame frame;
 
-	private static TankWorld singleton;
+	// Client Sender
+	private ClientSideSender clientSideSender;
 
-	public static TankWorld singleton() {
-		if (singleton == null)
-			singleton = new TankWorld();
-		return singleton;
-	}
-
-	public static void main(String args[]) throws Exception {
-		// Wait for ID from server
-		ClientSideListener.singleton(ClientSideSender.singleton().getClientSocket()).start();
-		ClientSideSender.singleton().sendRequestConnectMessage();
-		singleton().start();
-	}
-
-	// Create new Observable
-	public TankWorld() {
+	public TankGameClient(ClientSideSender clientSideSender) {
 		this.players = new HashMap<Integer, Tank>();
 		this.gobs = new GameObservable();
+		this.clientSideSender = clientSideSender;
+		this.clientSideSender.setTankGameClient(this);
 	}
 
 	public static Object getIDFromServerLock = new Object();
@@ -119,7 +138,7 @@ public class TankWorld implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			System.out.println("Current ID: " + currentID);
 			init();
 
@@ -138,7 +157,7 @@ public class TankWorld implements Runnable {
 					Thread.sleep(1000 / 144);
 				}
 			} catch (InterruptedException e) {
-				Logger.getLogger(TankWorld.class.getName()).log(Level.SEVERE, null, e);
+				Logger.getLogger(TankGameClient.class.getName()).log(Level.SEVERE, null, e);
 			}
 
 			stop();
@@ -178,7 +197,7 @@ public class TankWorld implements Runnable {
 		initResourcePaths();
 
 		// initialize scene things here
-		this.scene = new Scene(map_width, map_height, frame_width, frame_height, background_path, img_paths);
+		this.scene = new Scene(map_width, map_height, frame_width, frame_height, background_path, img_paths, this);
 		setupMap();
 
 		setupPlayer(currentID);
@@ -189,11 +208,11 @@ public class TankWorld implements Runnable {
 		setupFrame();
 
 		// Start sending this tank's position
-		TankPosSendService tpss = new TankPosSendService(players.get(currentID));
+		TankPosSendService tpss = new TankPosSendService(players.get(currentID), clientSideSender, this);
 		tpss.start();
 
 		// Start sending this tank's health
-		HealthValueSendService hvss = new HealthValueSendService(players.get(currentID));
+		HealthValueSendService hvss = new HealthValueSendService(players.get(currentID), this, clientSideSender);
 		hvss.start();
 
 		isInitialized = true;
@@ -277,25 +296,25 @@ public class TankWorld implements Runnable {
 				if (this.mapLayout[row][col] == 2) {
 					objectImage = setImage(img_paths[2]);
 					walls.add(new Wall(col * cell_size, row * cell_size, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					walls.add(new Wall((col * cell_size) + extra, row * cell_size, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					walls.add(new Wall(col * cell_size, (row * cell_size) + extra, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					walls.add(new Wall((col * cell_size) + extra, (row * cell_size) + extra, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 				}
 				// Breakable Wall
 				if (this.mapLayout[row][col] == 3) {
 					objectImage = setImage(img_paths[3]);
 					bwalls.add(new BreakableWall(col * cell_size, row * cell_size, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					bwalls.add(new BreakableWall((col * cell_size) + extra, row * cell_size, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					bwalls.add(new BreakableWall(col * cell_size, (row * cell_size) + extra, objectImage.getWidth(),
-							objectImage.getHeight(), objectImage));
+							objectImage.getHeight(), objectImage, this));
 					bwalls.add(new BreakableWall((col * cell_size) + extra, (row * cell_size) + extra,
-							objectImage.getWidth(), objectImage.getHeight(), objectImage));
+							objectImage.getWidth(), objectImage.getHeight(), objectImage, this));
 				}
 				// Health
 				// TODO: this is currently a generic powerup
@@ -307,7 +326,7 @@ public class TankWorld implements Runnable {
 					// objectImage.getWidth(), objectImage.getHeight(), objectImage));
 					// this is the temporary set up; remove this if a new layout is used
 					pups.add(new PowerUp((col * cell_size) + (extra / 2), (row * cell_size) + (extra / 2),
-							objectImage.getWidth(), objectImage.getHeight(), objectImage));
+							objectImage.getWidth(), objectImage.getHeight(), objectImage, this));
 				}
 				// Life
 				/*
@@ -333,8 +352,6 @@ public class TankWorld implements Runnable {
 		this.scene.setMapObjects(this.walls, this.bwalls, this.pups);
 	}
 
-	public static int currentID = 3;
-
 	public void setupPlayer(int id) {
 		BufferedImage t1img = setImage(img_paths[0]);
 //		BufferedImage t2img = setImage(img_paths[1]);
@@ -348,9 +365,9 @@ public class TankWorld implements Runnable {
 				KeyEvent.VK_W, KeyEvent.VK_S, KeyEvent.VK_SPACE, id);
 
 		// connect key inputs with tank, if this client owns it
-		if (id == TankWorld.currentID) {
+		if (id == this.currentID) {
 			System.out.println("Key Input set!");
-			this.keyinput1 = new KeyInput(tank);
+			this.keyinput1 = new KeyInput(tank, clientSideSender);
 		}
 
 		// add tanks to observer list
@@ -389,10 +406,6 @@ public class TankWorld implements Runnable {
 				despawnPlayer(oldId);
 			}
 		}
-	}
-
-	public static void setCurrentID(int id) {
-		TankWorld.currentID = id;
 	}
 
 	private void setupSounds() {
@@ -437,10 +450,12 @@ public class TankWorld implements Runnable {
 
 	public void handleLoseScene() {
 		this.scene.setupLoseText();
+		this.turnOff();
 	}
 
 	public void handleWinScene() {
 		this.scene.setupWinText();
+		this.turnOff();
 	}
 
 	// SETTERS //
@@ -455,7 +470,7 @@ public class TankWorld implements Runnable {
 	}
 
 	// GETTERS //
-	public TankWorld getTankWorld() {
+	public TankGameClient getTankWorld() {
 		return this;
 	}
 
@@ -518,7 +533,7 @@ public class TankWorld implements Runnable {
 	}
 
 	public void turnOff() {
-		this.running = false;
+		this.stop();
+		System.exit(0);
 	}
-
 }

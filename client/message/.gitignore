@@ -25,3 +25,15 @@
 /HealthValueMessage.class
 /PacketParser$SetHealthValue.class
 /PacketParser$DelayedShutdown.class
+/MessageSendService.class
+/PacketParser$SetAlly.class
+/PacketParser$HandleAcknowledgeThread.class
+/PacketParser$HandleRoomMemberUpdateThread.class
+/PacketParser$HandleUpdateTankPosThread.class
+/PacketParser$HAndleShootFromTankThread.class
+/PacketParser$HandleShootFromTankThread.class
+/PacketParser$HandleSetHealthValueThread.class
+/PacketParser$HandleSetAllyThread.class
+/PacketParser$HandleEndGame.class
+/PacketParser$HandleLoseSceneThread.class
+/PacketParser$HandleWinSceneThread.class

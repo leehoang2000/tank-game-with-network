@@ -62,7 +62,6 @@ public abstract class GameObject extends JComponent {
         this.objectRectangle = new Rectangle(x, y, this.width, this.height);
     }
     
-    
     // SETTERS //
     public void setX(int newX) {
         this.x = newX;

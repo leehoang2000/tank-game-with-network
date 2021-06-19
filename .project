@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>tank-game-with-network</name>
+	<name>tank-game</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -16,7 +16,7 @@
 	</natures>
 	<filteredResources>
 		<filter>
-			<id>1620549635492</id>
+			<id>0</id>
 			<name></name>
 			<type>30</type>
 			<matcher>

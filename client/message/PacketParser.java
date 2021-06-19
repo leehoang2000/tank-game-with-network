@@ -2,38 +2,38 @@ package client.message;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-import TankGame.TankWorld;
+import TankGame.TankGameClient;
 
 public class PacketParser {
 
-	private static PacketParser singleton;
+	private TankGameClient tankGame;
+	private ClientSideSender clientSideSender;
 
-	public static PacketParser singleton() {
-		if (singleton == null) {
-			singleton = new PacketParser();
-		}
-		return singleton;
+	public PacketParser(TankGameClient tankGame, ClientSideSender clientSideSender) {
+		super();
+		this.tankGame = tankGame;
+		this.clientSideSender = clientSideSender;
 	}
 
 	public void parse(DatagramPacket packet) throws IOException {
-		String message = new String(packet.getData());
-		int opcode = Integer.valueOf(message.substring(0, message.indexOf('~')));
-		String data = message.substring(message.indexOf('~') + 1, message.length()).trim();
-
-//		System.out.println("Client received data |" + data + "|Length: " + data.length());
+		String message = new String(packet.getData()).trim();
+		
+//		System.out.println("Client received data |" + message + "|Length: " + message.length());
+		String[] messageComponents = message.split(Message.DELIMITER);
+		int opcode = Integer.valueOf(messageComponents[0]);
 
 		switch (opcode) {
 			case Message.ACK: {
-				Acknowledge a = new Acknowledge(data);
+				HandleAcknowledgeThread a = new HandleAcknowledgeThread(messageComponents[1], messageComponents[2]);
 				a.start();
 				break;
 			}
-
+		
 			case Message.PING: {
-				ClientSideSender.singleton().sendReplyPingMessage();
+				clientSideSender.sendReplyPingMessage(tankGame.getRoomID());
 				break;
 			}
 
@@ -43,181 +43,197 @@ public class PacketParser {
 			}
 
 			case Message.ROOM_MEMBER_UPDATE: {
-				RoomMemberUpdate rmu = new RoomMemberUpdate(data);
+				HandleRoomMemberUpdateThread rmu = new HandleRoomMemberUpdateThread(
+						Arrays.copyOfRange(messageComponents, 1, messageComponents.length));
 				rmu.start();
 				break;
 			}
 			case Message.TANKPOS: {
-				UpdateTankPos utp = new UpdateTankPos(data);
+				HandleUpdateTankPosThread utp = new HandleUpdateTankPosThread(messageComponents[2], messageComponents[3], messageComponents[4],
+						messageComponents[5]);
 				utp.start();
 				break;
 			}
 			case Message.SHOOT: {
 //			System.out.println("Client.PacketParser.parse| Received Shot Message! ");
-				int playerID = Integer.valueOf(data);
-				ShootFromTank sft = new ShootFromTank(playerID);
+				HandleShootFromTankThread sft = new HandleShootFromTankThread(messageComponents[2]);
 				sft.start();
 				break;
 			}
+			
 			case Message.DEATH: {
 				break;
 			}
 
 			case Message.HEALTH_VALUE: {
-				SetHealthValue shv = new SetHealthValue(data);
+				HandleSetHealthValueThread shv = new HandleSetHealthValueThread(messageComponents[2], messageComponents[3]);
 				shv.start();
 				break;
 			}
-
+			
 			case Message.GAME_WON: {
-				TankWorld.singleton().handleWinScene();
-				System.out.println("We won!");
-				
+				new HandleWinSceneThread().start();
 				break;
 			}
 			case Message.GAME_LOST: {
-				TankWorld.singleton().handleLoseScene();
-				System.out.println("We lost!");
+				new HandleLoseSceneThread().start();
+				break;
+			}
+			
+			case Message.ANNOUNCE_ALLY:{
+				int allyID = Integer.valueOf(messageComponents[1]);
+				new HandleSetAllyThread(allyID).start();
 				break;
 			}
 		}
 	}
 
-	private class Acknowledge extends Thread {
-		private String data;
+	private class HandleAcknowledgeThread extends Thread {
+		private String roomID;
+		private String playerID;
 
-		public Acknowledge(String data) {
-			this.data = data;
+		public HandleAcknowledgeThread(String roomID, String playerID) {
+			this.roomID = roomID;
+			this.playerID = playerID;
 		}
 
 		@Override
 		public void run() {
-			TankWorld.setCurrentID(Integer.valueOf(data));
+			tankGame.setCurrentID(Integer.valueOf(playerID));
+			tankGame.setRoomID(Integer.valueOf(roomID));
 
-			synchronized (TankWorld.getIDFromServerLock) {
-				TankWorld.getIDFromServerLock.notify();
+			synchronized (TankGameClient.getIDFromServerLock) {
+				TankGameClient.getIDFromServerLock.notify();
 			}
 		}
 	}
 
-	private class RoomMemberUpdate extends Thread {
-		private String roomData;
+	private class HandleRoomMemberUpdateThread extends Thread {
+		private String[] roomData;
 
-		public RoomMemberUpdate(String data) {
-			this.roomData = data;
+		public HandleRoomMemberUpdateThread(String[] roomData) {
+			this.roomData = roomData;
 		}
 
 		@Override
 		public void run() {
 			ArrayList<Integer> ids = new ArrayList<Integer>();
-			while (roomData.length() > 0) {
-				if (roomData.contains("-")) {
-					ids.add(Integer.valueOf(roomData.substring(0, roomData.indexOf('-'))));
-					roomData = roomData.substring(roomData.indexOf('-') + 1, roomData.length());
-				} else {
-					ids.add(Integer.valueOf(roomData));
-					break;
-				}
+			for (String id : roomData) {
+				ids.add(Integer.valueOf(id));
 			}
 
 			try {
-				while (!TankWorld.singleton().isInitialized) {
-					sleep(20);
+				while (!tankGame.isInitialized()) {
+					sleep(100);
 				}
-				TankWorld.singleton().updateRoomMember(ids);
+				tankGame.updateRoomMember(ids);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 			System.out.print("Client.PacketParser.RoomMemberUpdate.run | The room now has: ");
-			for (int id : TankWorld.singleton().players.keySet()) {
-				System.out.print(id + " ");
-			}
-			System.out.println("");
-		}
-	}
-
-	private class UpdateTankPos extends Thread {
-		private String data;
-
-		public UpdateTankPos(String data) {
-			this.data = data;
-		}
-
-		@Override
-		public void run() {
-//			System.out.println("Client.PacketParser.UpdateTankPos| The tankpos data is: " + data);
-			int id, tankCenterPosX, tankCenterPosY, tankAngle;
-			id = Integer.valueOf(data.substring(0, data.indexOf('-')));
-			data = data.substring(data.indexOf('-') + 1, data.length());
-
-			tankCenterPosX = Integer.valueOf(data.substring(0, data.indexOf('-')));
-			data = data.substring(data.indexOf('-') + 1, data.length());
-
-			tankCenterPosY = Integer.valueOf(data.substring(0, data.indexOf('-')));
-			data = data.substring(data.indexOf('-') + 1, data.length());
-
-			tankAngle = Integer.valueOf(data);
-
-//			System.out.print("Client.PacketParser.UpdateTankPos|  | The room now has: ");
-//			for (int tankid : TankWorld.players.keySet()) {
-//				System.out.print(tankid + " ");
+//			for (int id : tankGame.getPlayers().keySet()) {
+//				System.out.print(id + " ");
 //			}
 //			System.out.println("");
+		}
+	}
+
+	private class HandleUpdateTankPosThread extends Thread {
+		private int id;
+		private int tankCenterPosX;
+		private int tankCenterPosY;
+		private int tankAngle;
+
+		public HandleUpdateTankPosThread(String id, String tankCenterPosX, String tankCenterPosY, String tankAngle) {
+			this.id = Integer.valueOf(id);
+			this.tankCenterPosX = Integer.valueOf(tankCenterPosX);
+			this.tankCenterPosY = Integer.valueOf(tankCenterPosY);
+			this.tankAngle = Integer.valueOf(tankAngle);
+		}
+
+		@Override
+		public void run() {
 
 			try {
-				TankWorld.singleton().players.get(id).setTankCenterX(tankCenterPosX);
-				TankWorld.singleton().players.get(id).setTankCenterY(tankCenterPosY);
-				TankWorld.singleton().players.get(id).setAngle(tankAngle);
+				tankGame.getPlayers().get(id).setTankCenterX(tankCenterPosX);
+				tankGame.getPlayers().get(id).setTankCenterY(tankCenterPosY);
+				tankGame.getPlayers().get(id).setAngle(tankAngle);
 			} catch (NullPointerException e) {
 				System.out.println("Client.PacketParser.UpdateTankPos| ID not exist: " + id);
-				// TODO: handle exception
 			}
 		}
 	}
 
-	private class ShootFromTank extends Thread {
+	private class HandleShootFromTankThread extends Thread {
 		int playerID;
 
-		public ShootFromTank(int playerID) {
-			this.playerID = playerID;
+		public HandleShootFromTankThread(String playerID) {
+			this.playerID = Integer.valueOf(playerID);
 		}
 
 		@Override
 		public void run() {
-			TankWorld.players.get(playerID).switchShootOn();
+			tankGame.getPlayers().get(playerID).switchShootOn();
 		}
 	}
 
-	private class SetHealthValue extends Thread {
-		String data;
+	private class HandleSetHealthValueThread extends Thread {
+		private int playerID;
+		private int healthValue;
 
-		public SetHealthValue(String data) {
-			this.data = data;
+		public HandleSetHealthValueThread(String playerID, String healthValue) {
+			this.playerID = Integer.valueOf(playerID);
+			this.healthValue = Integer.valueOf(healthValue);
 		}
 
 		@Override
 		public void run() {
-			int playerID = Integer.valueOf(data.substring(0, data.indexOf('~')));
-			data = data.substring(data.indexOf('~') + 1, data.length());
-			int healthValue = Integer.valueOf(data);
 //			System.out.println("Client.PacketParser.SetCurrentHeath | setting health for " + playerID + " with health value: " + healthValue);
-			TankWorld.players.get(playerID).setHealthPoints(healthValue);
+			tankGame.getPlayers().get(playerID).setHealthPoints(healthValue);
+		}
+	}
+
+	private class HandleSetAllyThread extends Thread{
+		private int allyID;
+
+		public HandleSetAllyThread(int allyID) {
+			super();
+			this.allyID = allyID;
+		}
+		
+		@Override
+		public void run() {
+			tankGame.setAllyID(allyID);
 		}
 	}
 	
-	private class DelayedShutdown extends Thread {
+	private class HandleWinSceneThread extends Thread{
 		@Override
 		public void run() {
+			System.out.println("TankGame winner state: ");
 			try {
-				sleep(3000);
+				sleep(3);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			TankWorld.singleton().turnOff();
+			tankGame.handleWinScene();
+		}
+	}
+	
+	private class HandleLoseSceneThread extends Thread{
+		@Override
+		public void run() {
+			try {
+				System.out.println("TankGame loser state: " );
+				sleep(3);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			tankGame.handleLoseScene();
 		}
 	}
 }

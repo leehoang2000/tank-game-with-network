@@ -4,10 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketAddress;
-
-import client.message.ClientSideListener;
-import server.message.PacketParser;
 
 public class RequestConnectTest {
 	

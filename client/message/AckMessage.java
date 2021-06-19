@@ -1,21 +1,16 @@
 package client.message;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 public class AckMessage extends Message {
 	
-	public AckMessage(String data)
+	public AckMessage(DatagramSocket senderSocket, InetSocketAddress destination, String data, int roomID) throws SocketException, UnknownHostException
 	{
-		this.stringData = data;
-	}
-
-	@Override
-	public void send(DatagramSocket ds) throws IOException {
-
+		super(senderSocket, destination);
+		this.data = ACK + DELIMITER + roomID;
 	}
 
 }

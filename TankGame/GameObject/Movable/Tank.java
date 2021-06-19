@@ -2,7 +2,7 @@ package TankGame.GameObject.Movable;
 
 import TankGame.GameObject.GameObject;
 import client.message.ClientSideSender;
-import TankGame.TankWorld;
+import TankGame.TankGameClient;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -27,15 +27,19 @@ public class Tank extends Movable implements Observer {
     private int shootKey;
     private int shootCoolDown = 0;
     private boolean moveLeft, moveRight, moveUp, moveDown, shoot;
-    private TankWorld obj;
+    private TankGameClient obj;
     private boolean isDead;
     
     public int id;
 
-    public Tank() {
+    public int getId() {
+		return id;
+	}
+
+	public Tank() {
     }
 
-    public Tank(TankWorld obj, BufferedImage img, int x, int y, int speed, int left, int right, int up, int down, int shootKey, int id) {
+    public Tank(TankGameClient obj, BufferedImage img, int x, int y, int speed, int left, int right, int up, int down, int shootKey, int id) {
         super(img, x, y, speed);
         this.left = left;
         this.right = right;
@@ -200,16 +204,17 @@ public class Tank extends Movable implements Observer {
         if (this.health <= 0) {
             isDead = true;
             
-            if (life <= 0)
-                obj.playSound(1);
+            //STFU
+//            if (life <= 0)
+//                obj.playSound(1);
         }
         if ((health > 0) && (coolDown == 0) && (life > 0)) {
             isDead = false;
             AffineTransform rotation = AffineTransform.getTranslateInstance(x, y);
             rotation.rotate(Math.toRadians(angle), img.getWidth(null) / 2, img.getHeight(null) / 2);
             g.drawImage(img, rotation, null);
-            for(Tank p1 : TankWorld.singleton().players.values()) {
-            	for(Tank p2 : TankWorld.singleton().players.values()) {
+            for(Tank p1 : obj.getPlayers().values()) {
+            	for(Tank p2 : obj.getPlayers().values()) {
                 	if(!p1.equals(p2)) {
 						if ((p1.collision(p2))) {
 							if (p1.x > x) {

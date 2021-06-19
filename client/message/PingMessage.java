@@ -1,29 +1,16 @@
 package client.message;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 public class PingMessage extends Message {
 	
-	public PingMessage()
+	public PingMessage(DatagramSocket senderSocket, InetSocketAddress destination, int roomID) throws SocketException, UnknownHostException
 	{
-		
-	}
-
-	@Override
-	public void send(DatagramSocket ds) throws IOException {
-		
-//		DatagramSocket clientSocket = new DatagramSocket();
-		InetAddress IPAddress = InetAddress.getByName(server_ip);
-		byte[] sendData = new byte[1024];
-		String data = String.valueOf(PING) + '~';
-		sendData = data.getBytes();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, server_port);
-		ds.send(sendPacket);
-		// TODO: Unclosed socket
-
+		super(senderSocket, destination);
+		this.data = String.valueOf(PING) + DELIMITER + String.valueOf(roomID);
 	}
 
 }
