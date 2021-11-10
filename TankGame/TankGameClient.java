@@ -199,7 +199,11 @@ public class TankGameClient implements Runnable {
 		// initialize scene things here
 		this.scene = new Scene(map_width, map_height, frame_width, frame_height, background_path, img_paths, this);
 		setupMap();
-
+		
+		if(currentID == -1) {
+			System.out.println("TankGameClient.init|CurrentID was not set!");
+			return;
+		}
 		setupPlayer(currentID);
 
 		setupSounds();
