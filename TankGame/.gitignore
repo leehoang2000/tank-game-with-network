@@ -4,6 +4,13 @@
 /KeyInput.class
 /Scene.class
 /TankWorld.class
+<<<<<<< HEAD
 /TankGame.class
 /TankGameClient.class
 /TankGameClient$DelayedTurnOff.class
+=======
+<<<<<<< HEAD
+/bin/
+=======
+>>>>>>> cc2cf81d5f2b4fa43c69cf9e14431e3aff64b6bb
+>>>>>>> 951423d51dcf9475548b0a00a77167736c08ab6d
